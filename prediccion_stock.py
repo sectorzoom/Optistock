@@ -1,68 +1,68 @@
+import os
+import sys
 import requests
 import pandas as pd
+import json
 from datetime import datetime, timedelta
 from sklearn.linear_model import LinearRegression
 
-# --- CONFIGURACIÓN ---
-base_url = "http://localhost:8080"
-resp = requests.get(f"{base_url}/api/productos")
+# === Parámetros desde Java ===
+producto_id = int(sys.argv[1])
+#token = os.environ.get("JWT_TOKEN")
+#BASE_URL = "http://localhost:8080"
+
+#headers = {"Authorization": f"Bearer {token}"}
+headers = {}
+
+
+# === Obtener movimientos de salida ===
+BASE_URL = "http://localhost:8080"
+movimientos_url = f"{BASE_URL}/api/movimientos/producto/{producto_id}/salidas"
+resp = requests.get(movimientos_url, headers=headers)
 
 if resp.status_code != 200:
-    print("❌ No se pudo obtener productos:", resp.status_code)
-    print(resp.text)  # Esto muestra si hay un error HTML
-    exit()
+    print(json.dumps({"error": f"Error obteniendo movimientos: {resp.status_code}"}))
+    sys.exit(1)
 
-productos = resp.json()
+data = resp.json()
+if not data:
+    print(json.dumps({"error": "No hay salidas registradas para este producto"}))
+    sys.exit(0)
 
+df = pd.DataFrame(data)
+df['fecha'] = pd.to_datetime(df['fecha'])
+df = df.groupby('fecha')['cantidad'].sum().reset_index()
+df['dias'] = (df['fecha'] - df['fecha'].min()).dt.days
+df['acumulado'] = df['cantidad'].cumsum()
 
-for producto in productos:
-    producto_id = producto['id']
-    print(f"\n🔍 Procesando producto {producto_id} - {producto['nombre']}")
+# === Modelo regresión lineal ===
+X = df[['dias']]
+y = df['acumulado']
+modelo = LinearRegression().fit(X, y)
 
-    try:
-        url_salidas = f"{base_url}/api/movimientos/producto/{producto_id}/salidas"
-        response = requests.get(url_salidas)
-        data = response.json()
+# === Obtener stock actual y mínimo del producto ===
+producto_url = f"{BASE_URL}/api/productos/{producto_id}"
+producto = requests.get(producto_url, headers=headers).json()
 
-        if not data:
-            print("ℹ️ No hay salidas registradas. Se omite.")
-            continue
+stock_actual = producto['stockActual']
+stock_minimo = producto['stockMinimo']
+consumo_diario = df['acumulado'].iloc[-1] / df['dias'].iloc[-1] if df['dias'].iloc[-1] > 0 else 0.1
 
-        # --- Procesamiento de datos ---
-        df = pd.DataFrame(data)
-        df['fecha'] = pd.to_datetime(df['fecha'])
-        df = df.groupby('fecha')['cantidad'].sum().reset_index()
-        df['dias'] = (df['fecha'] - df['fecha'].min()).dt.days
-        df['acumulado'] = df['cantidad'].cumsum()
+dias_hasta_minimo = (stock_actual - stock_minimo) / consumo_diario
+fecha_recomendada = datetime.now() + timedelta(days=dias_hasta_minimo)
 
-        # --- Entrenamiento de modelo ---
-        X = df[['dias']]
-        y = df['acumulado']
-        modelo = LinearRegression().fit(X, y)
+# === Generar JSON de respuesta
+respuesta = {
+    "producto": f"{producto['nombre']} (ID {producto_id})",
+    "stock_actual": stock_actual,
+    "stock_minimo": stock_minimo,
+    "consumo_diario_estimado": round(consumo_diario, 2),
+    "fecha_recomendada": fecha_recomendada.strftime("%Y-%m-%d"),
+    "dias_estimados_para_agotar_stock": int(round(dias_hasta_minimo)),
+    "recomendacion": (
+        f"Recomendado hacer pedido en los próximos {int(round(dias_hasta_minimo))} días"
+        if dias_hasta_minimo < 7 else "Stock suficiente por ahora"
+    )
+}
 
-        stock_actual = producto['stockActual']
-        stock_minimo = producto['stockMinimo']
-        consumo = df['acumulado'].iloc[-1] / df['dias'].iloc[-1] if df['dias'].iloc[-1] > 0 else 0.1
-
-        dias_hasta_rotura = (stock_actual - stock_minimo) / consumo
-        fecha_recomendada = datetime.now() + timedelta(days=dias_hasta_rotura)
-
-        # --- Crear predicción ---
-        prediccion = {
-            "producto": { "id": producto_id },
-            "fechaRecomendada": fecha_recomendada.strftime("%Y-%m-%d"),
-            "consumoDiarioEstimado": round(consumo, 2),
-            "fechaGeneracion": datetime.now().strftime("%Y-%m-%d")
-        }
-
-        # --- Enviar al backend ---
-        guardar_url = f"{base_url}/api/predicciones"
-        respuesta = requests.post(guardar_url, json=prediccion)
-
-        if respuesta.status_code == 200:
-            print(f"✅ Predicción guardada: {prediccion['fechaRecomendada']} (consumo: {consumo:.2f})")
-        else:
-            print("❌ Error al guardar predicción:", respuesta.text)
-
-    except Exception as e:
-        print(f"❌ Error procesando producto {producto_id}: {e}")
+print(json.dumps(respuesta))

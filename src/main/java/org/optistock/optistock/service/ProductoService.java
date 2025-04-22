@@ -1,4 +1,4 @@
-package org.optistock.optistock.security;
+package org.optistock.optistock.service;
 
 import org.optistock.optistock.entitiy.Producto;
 
@@ -10,4 +10,6 @@ public interface ProductoService {
     Producto crearProducto(Producto producto);
     Producto actualizarProducto(Long id, Producto producto);
     void eliminarProducto(Long id);
+    List<Producto> listarProductosConStockBajo();
+
 }
