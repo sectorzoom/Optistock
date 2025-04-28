@@ -15,8 +15,13 @@
 <body class="bg-light">
 <div class="container py-5">
   <h2 class="mb-4">🧠 Predicciones de Compra</h2>
-
+  <div class="mb-4">
+    <button class="btn btn-success me-2" onclick="exportarCSV()">📄 Exportar a CSV</button>
+    <button class="btn btn-primary" onclick="exportarPDF()">📄 Exportar a PDF</button>
+  </div>
   <div id="contenedor-recomendaciones"></div>
+
+
 </div>
 
 <script>
@@ -76,6 +81,47 @@
   }
 
   cargarProductos();
+
+  function exportarCSV() {
+    let csv = "Producto,Stock Actual,Consumo Diario Estimado,Fecha Recomendada,Días Estimados Para Agotar,Recomendación\n";
+    const cajas = document.querySelectorAll(".recomendacion-box");
+
+    cajas.forEach(caja => {
+      const lineas = caja.querySelectorAll("p");
+      const producto = caja.querySelector("h5").innerText;
+      const stock = lineas[0].innerText.split(":")[1].trim();
+      const consumo = lineas[1].innerText.split(":")[1].trim();
+      const fecha = lineas[2].innerText.split(":")[1].trim();
+      const dias = lineas[3].innerText.split(":")[1].trim();
+      const recomendacion = lineas[4].innerText.split(":")[1].trim();
+
+      csv += `"${producto}","${stock}","${consumo}","${fecha}","${dias}","${recomendacion}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "predicciones_stock.csv";
+    link.click();
+  }
+
+  function exportarPDF() {
+    const cajas = document.querySelectorAll(".recomendacion-box");
+    let contenido = "🧠 Predicciones de Stock\n\n";
+
+    cajas.forEach(caja => {
+      const producto = caja.querySelector("h5").innerText;
+      const detalles = caja.querySelectorAll("p");
+      contenido += `${producto}\n`;
+      detalles.forEach(p => contenido += `${p.innerText}\n`);
+      contenido += "\n";
+    });
+
+    const ventana = window.open('', '_blank');
+    ventana.document.write('<pre>' + contenido + '</pre>');
+    ventana.document.close();
+    ventana.print();
+  }
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

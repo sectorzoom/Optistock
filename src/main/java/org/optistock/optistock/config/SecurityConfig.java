@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -25,16 +26,25 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/recomendacion/**").permitAll()
-                        .requestMatchers("/api/movimientos/**").permitAll() // ✅ necesario
-                        .requestMatchers("/api/productos/**").permitAll()    // ✅ también si consultas productos
+                        .requestMatchers("/", "/**").permitAll()
+                        .requestMatchers(
+                                "/api/predicciones/**",
+                                "/api/proveedores/**",
+                                "/api/auth/**",
+                                "/api/recomendacion/**",
+                                "/api/movimientos/**",
+                                "/api/productos/**",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .build();
     }
+
 
 
 

@@ -21,5 +21,5 @@ public class Proveedor {
 
     private String telefono;
 
-    private Integer tiempoEntregaDias; // tiempo estimado de entrega
+    private Integer tiempoEntregaDias;
 }

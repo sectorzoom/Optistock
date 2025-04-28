@@ -67,10 +67,10 @@ public class MovimientoServiceImpl implements MovimientoService {
                 }
             }).start();
 
-            System.out.println("🧠 Script de predicción ejecutado para producto " + productoId);
+            System.out.println("Script de predicción ejecutado para producto " + productoId);
 
         } catch (Exception e) {
-            System.err.println("❌ Error ejecutando script de IA: " + e.getMessage());
+            System.err.println("Error ejecutando script de IA: " + e.getMessage());
         }
     }
 
