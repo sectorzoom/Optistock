@@ -67,7 +67,7 @@ public class MovimientoServiceImpl implements MovimientoService {
                     String.valueOf(productoId)
             );
 
-            pb.environment().put("BASE_URL", "http://3.230.201.137:8080");
+            pb.environment().put("ENTORNO", "produccion");
             pb.redirectErrorStream(true);
             Process proceso = pb.start();
 
@@ -84,4 +84,5 @@ public class MovimientoServiceImpl implements MovimientoService {
             System.err.println("❌ Error ejecutando script IA: " + e.getMessage());
         }
     }
+
 }
