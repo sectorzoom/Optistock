@@ -30,7 +30,16 @@ jobs:
           source: target/ROOT.war
           target: /home/ubuntu/
 
-      - name: Mover WAR a Tomcat y reiniciar
+      - name: Copiar script IA a EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 3.230.201.137
+          username: ubuntu
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          source: prediccion_stock.py
+          target: /home/ubuntu/
+
+      - name: Mover archivos y reiniciar Tomcat
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: 3.230.201.137
@@ -38,4 +47,6 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
             sudo mv /home/ubuntu/ROOT.war /var/lib/tomcat10/webapps/
+            sudo mv /home/ubuntu/prediccion_stock.py /var/lib/tomcat10/
+            sudo chmod +x /var/lib/tomcat10/prediccion_stock.py
             sudo systemctl restart tomcat10

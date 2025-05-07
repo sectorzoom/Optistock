@@ -61,7 +61,7 @@ public class MovimientoServiceImpl implements MovimientoService {
 
     private void ejecutarScriptIA(Long productoId) {
         try {
-            ProcessBuilder pb = new ProcessBuilder("python3", "prediccion_stock.py", String.valueOf(productoId));
+            ProcessBuilder pb = new ProcessBuilder("python3", "/var/lib/tomcat10/prediccion_stock.py", String.valueOf(productoId));
 
             // 🔧 Establecer entorno como "produccion"
             pb.environment().put("ENTORNO", "produccion");
