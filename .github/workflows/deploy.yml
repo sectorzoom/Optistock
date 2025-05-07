@@ -21,13 +21,13 @@ jobs:
       - name: Construir WAR
         run: mvn clean install -DskipTests
 
-      - name: Copiar WAR a EC2
+      - name: Copiar ROOT.war a EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: 3.230.201.137
           username: ubuntu
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: target/Optistock.war
+          source: target/ROOT.war
           target: /home/ubuntu/
 
       - name: Mover WAR a Tomcat y reiniciar
@@ -37,5 +37,5 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            sudo mv /home/ubuntu/Optistock.war /var/lib/tomcat10/webapps/
+            sudo mv /home/ubuntu/ROOT.war /var/lib/tomcat10/webapps/
             sudo systemctl restart tomcat10
