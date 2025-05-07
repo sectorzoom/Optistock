@@ -2,7 +2,7 @@ name: Despliegue a EC2
 
 on:
   push:
-    branches: master
+    branches: [master]
 
 jobs:
   deploy:
@@ -21,25 +21,29 @@ jobs:
       - name: Construir WAR
         run: mvn clean install -DskipTests
 
-      - name: Copiar ROOT.war a EC2
+      - name: Copiar WAR y script a EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: 3.230.201.137
           username: ubuntu
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: target/ROOT.war
+          source: |
+            target/ROOT.war
+            prediccion_stock.py
           target: /home/ubuntu/
 
-      - name: Copiar script IA a EC2
-        uses: appleboy/scp-action@v0.1.7
+      - name: Instalar entorno Python y dependencias en EC2
+        uses: appleboy/ssh-action@v0.1.10
         with:
           host: 3.230.201.137
           username: ubuntu
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: prediccion_stock.py
-          target: /home/ubuntu/
+          script: |
+            sudo apt update && sudo apt install -y python3-venv python3-pip
+            python3 -m venv ~/optistock-ia-env
+            source ~/optistock-ia-env/bin/activate && pip install pandas scikit-learn requests
 
-      - name: Mover archivos y reiniciar Tomcat
+      - name: Mover WAR a Tomcat y reiniciar
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: 3.230.201.137
@@ -47,6 +51,4 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
             sudo mv /home/ubuntu/ROOT.war /var/lib/tomcat10/webapps/
-            sudo mv /home/ubuntu/prediccion_stock.py /var/lib/tomcat10/
-            sudo chmod +x /var/lib/tomcat10/prediccion_stock.py
             sudo systemctl restart tomcat10
