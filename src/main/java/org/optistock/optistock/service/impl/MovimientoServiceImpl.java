@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.List;
 
 @Service
@@ -61,28 +63,27 @@ public class MovimientoServiceImpl implements MovimientoService {
 
     private void ejecutarScriptIA(Long productoId) {
         try {
-            ProcessBuilder pb = new ProcessBuilder("python3", "prediccion_stock.py", String.valueOf(productoId));
+            ProcessBuilder pb = new ProcessBuilder(
+                    "bash", "-c",
+                    "source /home/ubuntu/optistock-ia-env/bin/activate && ENTORNO=produccion python3 /home/ubuntu/optistock-ia-env/prediccion_stock.py " + productoId
+            );
             pb.redirectErrorStream(true);
-
-            // ✅ Variable de entorno para que el script use la IP pública de EC2
-            pb.environment().put("ENTORNO", "produccion");
-
             Process proceso = pb.start();
 
             new Thread(() -> {
-                try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(proceso.getInputStream()))) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(proceso.getInputStream()))) {
                     reader.lines().forEach(System.out::println);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }).start();
 
-            System.out.println("✅ Script de predicción ejecutado para producto " + productoId);
-
+            System.out.println("🧠 Script IA ejecutado para producto " + productoId);
         } catch (Exception e) {
-            System.err.println("❌ Error ejecutando script de IA: " + e.getMessage());
+            System.err.println("❌ Error ejecutando script IA: " + e.getMessage());
         }
     }
+
 
 
 
