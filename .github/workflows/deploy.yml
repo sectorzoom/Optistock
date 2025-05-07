@@ -37,7 +37,7 @@ jobs:
           source: deploy.tar.gz
           target: /home/ubuntu/
 
-      - name: Extraer y mover archivos en EC2
+      - name: Extraer, mover y configurar en EC2
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: 3.230.201.137
@@ -46,6 +46,20 @@ jobs:
           script: |
             cd /home/ubuntu
             tar -xzf deploy.tar.gz
+
+            # Mover WAR al Tomcat
             sudo mv ROOT.war /var/lib/tomcat10/webapps/
-            sudo mv prediccion_stock.py /home/ubuntu/optistock-ia-env/
+
+            # Verificar entorno virtual
+            if [ ! -d "/home/ubuntu/optistock-ia-env" ]; then
+              python3 -m venv /home/ubuntu/optistock-ia-env
+              /home/ubuntu/optistock-ia-env/bin/pip install --upgrade pip
+              /home/ubuntu/optistock-ia-env/bin/pip install pandas requests scikit-learn
+            fi
+
+            # Mover script y dar permisos
+            mv prediccion_stock.py /home/ubuntu/optistock-ia-env/
+            chmod +x /home/ubuntu/optistock-ia-env/prediccion_stock.py
+
+            # Reiniciar Tomcat
             sudo systemctl restart tomcat10
