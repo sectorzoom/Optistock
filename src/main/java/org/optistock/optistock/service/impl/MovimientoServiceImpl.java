@@ -62,12 +62,12 @@ public class MovimientoServiceImpl implements MovimientoService {
     private void ejecutarScriptIA(Long productoId) {
         try {
             ProcessBuilder pb = new ProcessBuilder(
-                    "python3",
+                    "python3", // 👈 Cambiado de "python" a "python3"
                     "/home/ubuntu/optistock-ia-env/prediccion_stock.py",
                     String.valueOf(productoId)
             );
 
-            pb.environment().put("ENTORNO", "produccion");
+            pb.environment().put("ENTORNO", "produccion"); // 👈 Esto activa el entorno correcto
             pb.redirectErrorStream(true);
             Process proceso = pb.start();
 
@@ -84,5 +84,6 @@ public class MovimientoServiceImpl implements MovimientoService {
             System.err.println("❌ Error ejecutando script IA: " + e.getMessage());
         }
     }
+
 
 }
