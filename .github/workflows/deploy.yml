@@ -21,27 +21,31 @@ jobs:
       - name: Construir WAR
         run: mvn clean install -DskipTests
 
-      - name: Verificar que el WAR se generó correctamente
-        run: ls -l target/
+      - name: Empaquetar WAR y script Python
+        run: |
+          mkdir deploy
+          cp target/ROOT.war deploy/
+          cp prediccion_stock.py deploy/
+          tar -czf deploy.tar.gz -C deploy .
 
-      - name: Copiar WAR y script de IA a EC2
+      - name: Subir archivos a EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: 3.230.201.137
           username: ubuntu
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: |
-            target/ROOT.war
-            prediccion_stock.py
+          source: deploy.tar.gz
           target: /home/ubuntu/
 
-      - name: Mover WAR y script, reiniciar Tomcat
+      - name: Extraer y mover archivos en EC2
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: 3.230.201.137
           username: ubuntu
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            sudo mv /home/ubuntu/ROOT.war /var/lib/tomcat10/webapps/
-            sudo mv /home/ubuntu/prediccion_stock.py /home/ubuntu/optistock-ia-env/
+            cd /home/ubuntu
+            tar -xzf deploy.tar.gz
+            sudo mv ROOT.war /var/lib/tomcat10/webapps/
+            sudo mv prediccion_stock.py /home/ubuntu/optistock-ia-env/
             sudo systemctl restart tomcat10
