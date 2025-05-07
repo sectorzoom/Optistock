@@ -10,10 +10,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/movimientos")
-@RequiredArgsConstructor
 public class MovimientoController {
 
     private final MovimientoService movimientoService;
+
+    public MovimientoController(MovimientoService movimientoService) {
+        this.movimientoService = movimientoService;
+    }
 
     @GetMapping
     public List<Movimiento> listarTodos() {

@@ -3,16 +3,21 @@ package org.optistock.optistock.controller;
 import org.optistock.optistock.entitiy.Proveedor;
 import org.optistock.optistock.service.ProveedorService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
         import java.util.List;
 
 @RestController
 @RequestMapping("/api/proveedores")
-@RequiredArgsConstructor
 public class ProveedorController {
 
     private final ProveedorService proveedorService;
+
+    @Autowired
+    public ProveedorController(ProveedorService proveedorService) {
+        this.proveedorService = proveedorService;
+    }
 
     @GetMapping
     public List<Proveedor> listar() {

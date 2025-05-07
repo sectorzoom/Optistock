@@ -1,7 +1,6 @@
 package org.optistock.optistock.config;
 
 import lombok.RequiredArgsConstructor;
-import org.optistock.optistock.service.impl.UsuarioDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,7 +15,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UsuarioDetailsServiceImpl usuarioDetailsService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {

@@ -1,0 +1,41 @@
+name: Despliegue a EC2
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      - name: Configurar Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Construir WAR
+        run: mvn clean install -DskipTests
+
+      - name: Copiar WAR a EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 3.230.201.137
+          username: ubuntu
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          source: target/Optistock.war
+          target: /home/ubuntu/
+
+      - name: Mover WAR a Tomcat y reiniciar
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: 3.230.201.137
+          username: ubuntu
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            sudo mv /home/ubuntu/Optistock.war /var/lib/tomcat10/webapps/
+            sudo systemctl restart tomcat10

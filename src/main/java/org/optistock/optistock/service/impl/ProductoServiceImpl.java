@@ -4,15 +4,20 @@ import lombok.RequiredArgsConstructor;
 import org.optistock.optistock.entitiy.Producto;
 import org.optistock.optistock.repository.ProductoRepository;
 import org.optistock.optistock.service.ProductoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class ProductoServiceImpl implements ProductoService {
 
     private final ProductoRepository productoRepository;
+
+    @Autowired
+    public ProductoServiceImpl(ProductoRepository productoRepository) {
+        this.productoRepository = productoRepository;
+    }
 
     @Override
     public List<Producto> listarTodos() {

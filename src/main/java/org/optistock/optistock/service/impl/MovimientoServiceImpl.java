@@ -8,16 +8,22 @@ import org.optistock.optistock.repository.ProductoRepository;
 import org.optistock.optistock.service.MovimientoService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class MovimientoServiceImpl implements MovimientoService {
 
     private final MovimientoRepository movimientoRepository;
     private final ProductoRepository productoRepository;
+
+    @Autowired
+    public MovimientoServiceImpl(MovimientoRepository movimientoRepository, ProductoRepository productoRepository) {
+        this.movimientoRepository = movimientoRepository;
+        this.productoRepository = productoRepository;
+    }
 
     @Override
     public List<Movimiento> listarTodos() {

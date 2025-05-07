@@ -4,15 +4,20 @@ import org.optistock.optistock.entitiy.Proveedor;
 import org.optistock.optistock.repository.ProveedorRepository;
 import lombok.RequiredArgsConstructor;
 import org.optistock.optistock.service.ProveedorService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class ProveedorServiceImpl implements ProveedorService {
 
     private final ProveedorRepository proveedorRepository;
+
+    @Autowired
+    public ProveedorServiceImpl(ProveedorRepository proveedorRepository) {
+        this.proveedorRepository = proveedorRepository;
+    }
 
     @Override
     public List<Proveedor> listarTodos() {

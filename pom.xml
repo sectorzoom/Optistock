@@ -59,8 +59,10 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <optional>true</optional>
+            <version>1.18.30</version> <!-- o la última disponible -->
+            <scope>provided</scope>
         </dependency>
+
 
         <!-- DevTools (recarga automática en desarrollo) -->
         <dependency>
@@ -89,6 +91,8 @@
             <scope>test</scope>
         </dependency>
 
+
+
     </dependencies>
 
     <build>
@@ -97,9 +101,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <packaging>war</packaging>
-                </configuration>
             </plugin>
         </plugins>
     </build>

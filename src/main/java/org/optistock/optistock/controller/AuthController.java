@@ -1,43 +1,64 @@
 package org.optistock.optistock.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.optistock.optistock.dto.LoginRequest;
 import org.optistock.optistock.dto.RegistroRequest;
 import org.optistock.optistock.entitiy.Usuario;
 import org.optistock.optistock.repository.UsuarioRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // Inyección de dependencias manual (sin @RequiredArgsConstructor)
+    public AuthController(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+        this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @PostMapping("/register")
-    public String register(@RequestBody RegistroRequest request) {
-        Usuario usuario = Usuario.builder()
-                .nombre(request.getNombre())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .rol("USER")
-                .build();
+    public ResponseEntity<?> register(@RequestBody RegistroRequest request) {
+        if (usuarioRepository.existsByEmail(request.getEmail())) {
+            return ResponseEntity.badRequest().body("El email ya está registrado");
+        }
+
+        // Crear usuario con constructor
+        Usuario usuario = new Usuario(
+                null, // ID se autogenera
+                request.getNombre(),
+                request.getEmail(),
+                passwordEncoder.encode(request.getPassword()),
+                "USER"
+        );
+
         usuarioRepository.save(usuario);
-        return "Usuario registrado correctamente";
+
+        return ResponseEntity.ok("Usuario registrado correctamente");
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElse(null);
 
-        if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
-            throw new RuntimeException("Credenciales inválidas");
+        if (usuario == null || !passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
+            return ResponseEntity.status(401).body("Credenciales inválidas");
         }
 
-        return "Login correcto";
-    }
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Login correcto");
+        response.put("nombre", usuario.getNombre());
+        response.put("email", usuario.getEmail());
+        response.put("rol", usuario.getRol());
 
+        return ResponseEntity.ok(response);
+    }
 }
