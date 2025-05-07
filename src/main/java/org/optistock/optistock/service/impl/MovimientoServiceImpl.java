@@ -47,8 +47,7 @@ public class MovimientoServiceImpl implements MovimientoService {
         } else if (movimiento.getTipo() == TipoMovimiento.SALIDA) {
             producto.setStockActual(producto.getStockActual() - movimiento.getCantidad());
 
-            ejecutarScriptIA(producto.getId());//Ejecutar script de predicción
-
+            ejecutarScriptIA(producto.getId());
         }
 
         productoRepository.save(producto);
@@ -60,7 +59,6 @@ public class MovimientoServiceImpl implements MovimientoService {
         movimientoRepository.deleteById(id);
     }
 
-
     private void ejecutarScriptIA(Long productoId) {
         try {
             ProcessBuilder pb = new ProcessBuilder(
@@ -69,7 +67,7 @@ public class MovimientoServiceImpl implements MovimientoService {
                     String.valueOf(productoId)
             );
 
-            pb.environment().put("ENTORNO", "produccion");
+            pb.environment().put("BASE_URL", "http://3.230.201.137:8080");
             pb.redirectErrorStream(true);
             Process proceso = pb.start();
 
@@ -86,12 +84,4 @@ public class MovimientoServiceImpl implements MovimientoService {
             System.err.println("❌ Error ejecutando script IA: " + e.getMessage());
         }
     }
-
-
-
-
-
-
-
 }
-
