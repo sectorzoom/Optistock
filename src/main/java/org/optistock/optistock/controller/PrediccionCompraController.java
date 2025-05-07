@@ -20,7 +20,7 @@ public class PrediccionCompraController {
     @GetMapping("/{productoId}")
     public ResponseEntity<?> obtenerRecomendacion(@PathVariable Long productoId) {
         try {
-            ProcessBuilder builder = new ProcessBuilder("python", "prediccion_stock.py", String.valueOf(productoId));
+            ProcessBuilder builder = new ProcessBuilder("python3", "prediccion_stock.py", String.valueOf(productoId));
             builder.redirectErrorStream(true);
 
             Process process = builder.start();
