@@ -20,25 +20,42 @@ public class PrediccionCompraController {
     @GetMapping("/{productoId}")
     public ResponseEntity<?> obtenerRecomendacion(@PathVariable Long productoId) {
         try {
-            ProcessBuilder builder = new ProcessBuilder("python3", "prediccion_stock.py", String.valueOf(productoId));
-            builder.redirectErrorStream(true);
+            String scriptPath = "/home/ubuntu/optistock-ia-env/prediccion_stock.py";
+            String pythonPath = "/home/ubuntu/optistock-ia-env/bin/python3";
 
-            Process process = builder.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String output = reader.lines().collect(Collectors.joining("\n"));
+            boolean produccion = new java.io.File(scriptPath).exists(); // Detecta si estamos en EC2
+            String pythonCommand = produccion ? pythonPath : "python";
 
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                return ResponseEntity.status(500).body("Error al ejecutar script:\n" + output);
+            ProcessBuilder builder = new ProcessBuilder(
+                    pythonCommand,
+                    produccion ? scriptPath : "prediccion_stock.py",
+                    String.valueOf(productoId)
+            );
+
+            if (produccion) {
+                builder.environment().put("ENTORNO", "produccion");
             }
 
-            return ResponseEntity.ok()
-                    .header("Content-Type", "application/json")
-                    .body(output);
+            builder.redirectErrorStream(true);
+            Process process = builder.start();
+
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String output = reader.lines().collect(Collectors.joining("\n"));
+                int exitCode = process.waitFor();
+
+                if (exitCode != 0) {
+                    return ResponseEntity.status(500).body("Error al ejecutar script:\n" + output);
+                }
+
+                return ResponseEntity.ok()
+                        .header("Content-Type", "application/json")
+                        .body(output);
+            }
 
         } catch (IOException | InterruptedException e) {
             return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
     }
+
 }
 
