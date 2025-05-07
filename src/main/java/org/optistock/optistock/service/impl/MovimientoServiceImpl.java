@@ -61,12 +61,12 @@ public class MovimientoServiceImpl implements MovimientoService {
 
     private void ejecutarScriptIA(Long productoId) {
         try {
-            ProcessBuilder pb = new ProcessBuilder("python3", "/var/lib/tomcat10/prediccion_stock.py", String.valueOf(productoId));
+            ProcessBuilder pb = new ProcessBuilder("python3", "prediccion_stock.py", String.valueOf(productoId));
+            pb.redirectErrorStream(true);
 
-            // 🔧 Establecer entorno como "produccion"
+            // ✅ Variable de entorno para que el script use la IP pública de EC2
             pb.environment().put("ENTORNO", "produccion");
 
-            pb.redirectErrorStream(true); // Combina stdout y stderr
             Process proceso = pb.start();
 
             new Thread(() -> {
@@ -77,7 +77,7 @@ public class MovimientoServiceImpl implements MovimientoService {
                 }
             }).start();
 
-            System.out.println("🧠 Script de predicción ejecutado para producto " + productoId);
+            System.out.println("✅ Script de predicción ejecutado para producto " + productoId);
 
         } catch (Exception e) {
             System.err.println("❌ Error ejecutando script de IA: " + e.getMessage());
