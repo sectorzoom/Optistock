@@ -20,21 +20,20 @@ public class PrediccionCompraController {
     @GetMapping("/{productoId}")
     public ResponseEntity<?> obtenerRecomendacion(@PathVariable Long productoId) {
         try {
-            String scriptPath = "/home/ubuntu/optistock-ia-env/prediccion_stock.py";
+            // Rutas absolutas
             String pythonPath = "/home/ubuntu/optistock-ia-env/bin/python3";
-
-            boolean produccion = new java.io.File(scriptPath).exists(); // Detecta si estamos en EC2
-            String pythonCommand = produccion ? pythonPath : "python";
+            String scriptPath = "/home/ubuntu/optistock-ia-env/prediccion_stock.py";
 
             ProcessBuilder builder = new ProcessBuilder(
-                    pythonCommand,
-                    produccion ? scriptPath : "prediccion_stock.py",
+                    pythonPath,
+                    scriptPath,
                     String.valueOf(productoId)
             );
+            // Para que el script use EC2:8080 en lugar de localhost
+            builder.environment().put("ENTORNO", "produccion");
 
-            if (produccion) {
-                builder.environment().put("ENTORNO", "produccion");
-            }
+            // Opcional: para depurar, imprime la línea de comando que vas a ejecutar
+            System.out.println("Ejecutando script: " + String.join(" ", builder.command()));
 
             builder.redirectErrorStream(true);
             Process process = builder.start();
@@ -53,9 +52,10 @@ public class PrediccionCompraController {
             }
 
         } catch (IOException | InterruptedException e) {
-            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+            return ResponseEntity.status(500).body("Error interno: " + e.getMessage());
         }
     }
+
 
 }
 

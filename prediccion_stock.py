@@ -9,13 +9,8 @@ from sklearn.linear_model import LinearRegression
 # === Parámetros desde Java ===
 producto_id = int(sys.argv[1])
 
-# === Detectar entorno: local o EC2 ===
-DEFAULT_BASE_URL = "http://localhost:8080"
-EC2_BASE_URL = "http://3.230.201.137:8080"  # IP pública de tu instancia EC2
-entorno = os.environ.get("ENTORNO", "local")
+BASE_URL = "http://localhost:8080"
 
-BASE_URL = EC2_BASE_URL if entorno == "produccion" else DEFAULT_BASE_URL
-headers = {}
 
 # === Obtener movimientos de salida ===
 movimientos_url = f"{BASE_URL}/api/movimientos/producto/{producto_id}/salidas"
