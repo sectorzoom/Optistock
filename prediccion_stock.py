@@ -9,8 +9,10 @@ from sklearn.linear_model import LinearRegression
 # === Parámetros desde Java ===
 producto_id = int(sys.argv[1])
 
-BASE_URL = "http://localhost:8080"
+# Siempre localhost:8080, incluso en "produccion"
+BASE_URL = os.environ.get("BASE_URL", "http://localhost:8080")
 
+headers = {}
 
 # === Obtener movimientos de salida ===
 movimientos_url = f"{BASE_URL}/api/movimientos/producto/{producto_id}/salidas"
